@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - robotwin_zeva_fastwam_static_3cam_384
+  - _self_
+
+model:
+  zeva:
+    training_stage: policy_injection

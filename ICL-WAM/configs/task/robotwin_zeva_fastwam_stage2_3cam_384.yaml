@@ -1,0 +1,55 @@
+# @package _global_
+
+# Formal Zeva -> FastWAM Stage-2 configuration.
+# Keep Stage-1's CTE-only config separate: Stage-2 MUST load cached text context.
+defaults:
+  - override /data: robotwin
+  - override /model: zeva_fastwam
+  - _self_
+
+# Per-GPU defaults. Override explicitly for your 16-GPU launch if needed.
+batch_size: 1
+num_workers: 4
+gradient_accumulation_steps: 1
+learning_rate: 1.0e-4
+weight_decay: 0.0
+max_grad_norm: 1.0
+max_steps: 5000
+num_epochs: 1
+lr_scheduler_type: cosine
+log_every: 10
+save_every: 1000
+eval_every: 100000000
+mixed_precision: bf16
+seed: 42
+
+data:
+  train:
+    # Unlike Stage-1 CTE training, FastWAM Stage-2 needs language context.
+    use_text_embed_cache: true
+    video_backend: pyav
+
+model:
+  zeva:
+    enabled: true
+    # First formal run. Switch to pim_adapter only after a policy_injection
+    # addon checkpoint has been produced and assigned to policy_checkpoint.
+    training_stage: policy_injection
+    freeze_fastwam: true
+    freeze_cte_stage2: true
+    cte:
+      checkpoint: null
+      latent_cache_path: null
+    cache:
+      # Keep the validated v4 source cache identity available for audit/checkpoint metadata.
+      path: null
+      strict_manifest: true
+    task_context:
+      mode: static
+      bank_path: null
+      readout_cache_path: null
+      retrieval_checkpoint: null
+      static_episode_cache_path: null
+      top_k: 5
+    prepared_stage2:
+      pim_cache_path: null

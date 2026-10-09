@@ -1,0 +1,22 @@
+# @package _global_
+
+defaults:
+  - sim_robotwin
+  - override /task: robotwin_zeva_fastwam_3cam_384
+  - _self_
+
+model:
+  load_text_encoder: true
+  zeva:
+    enabled: true
+
+EVALUATION:
+  policy_name: fastwam_policy
+  # base | zeva_stage2 | pim_shadow | pim_on
+  zeva_mode: pim_on
+  fixed_seed: null
+  max_attempts: 4
+  pim_top_k: 4
+  skip_get_obs_within_replan: false
+  cte_checkpoint: null
+  addon_checkpoint: null

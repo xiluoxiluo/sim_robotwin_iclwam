@@ -1,0 +1,3 @@
+precompute_zeva_cte_latents.sh
+train_zeva_cte.sh
+precompute_zeva_cte_latents.sh

@@ -1,0 +1,97 @@
+defaults:
+  - fastwam
+  - _self_
+
+zeva:
+  enabled: true
+  training_stage: policy_injection
+  # Used only to initialize pim_adapter from a Stage-2A checkpoint.
+  # Current-stage checkpoint resumption uses `resume` instead.
+  policy_checkpoint: null
+  action_only: true
+  freeze_fastwam: true
+  freeze_cte_stage2: true
+  cte:
+    checkpoint: null
+    action_dim: 14
+    transition_steps: 4
+    effect_window_transitions: 4
+    effect_target_grid: [4, 6]
+    hidden_dim: 256
+    retrieval_dim: 128
+    phase_dim: 128
+    effect_dim: 128
+    num_layers: 4
+    num_heads: 8
+    # Match Zeva's serving path: RGB is encoded once by the frozen Wan VAE
+    # outside CTE.  Set input_type=rgb_frame/image_channels=3 only for an
+    # explicitly separate CPU/debug checkpoint.
+    image_channels: 48
+    input_type: wan_vae_latent
+    vae_input_size: ${data.train.video_size}
+  memory:
+    bit_size: 4
+    pim_top_k: 4
+    pim_max_entries: 64
+    # phase is the Zeva default; cross_task_effect uses a causal BIT effect
+    # to retrieve functionally similar effects from other tasks.
+    pim_retrieval_mode: phase
+    # Provisional V1 default; tune/replace after reproducing the official
+    # Zeva merge threshold on held-out fixed-seed episodes.
+    merge_threshold: 0.85
+    beta_phase: 0.5
+    beta_effect: 0.5
+  task_context:
+    # pooling: text baseline; bank: text-prototype baseline; static: learned
+    # initial-image/text retrieval of frozen CTE demonstration prototypes.
+    mode: static
+    bank_path: null
+    readout_cache_path: null
+    retrieval_checkpoint: null
+    top_k: 5
+    key_dim: ${model.zeva.cte.retrieval_dim}
+    value_dim: ${model.zeva.prompt.global_dim}
+    # Build-time value; training/deployment use the temperature saved in the bank.
+    temperature: 0.07
+    retrieval:
+      input_dim: ${model.video_dit_config.hidden_dim}
+      hidden_dim: 1024
+      output_dim: ${model.zeva.task_context.key_dim}
+      dropout: 0.1
+    training:
+      steps: 2000
+      batch_size: 32
+      learning_rate: 1.0e-4
+      temperature: 0.07
+      validation_fraction: 0.2
+      eval_every: 50
+  prompt:
+    global_dim: 256
+    phase_dim: 128
+    effect_dim: 128
+    brief_length: 4
+    persistent_length: 4
+    hidden_dim: 256
+    num_heads: 4
+    pim_context_dropout: 0.2
+    pim_support_dropout: 0.2
+  adapter:
+    # exact_zeva keeps Causal Prompt prefix injection and action-prior
+    # injection as two separate branches, matching Zeva's policy path.
+    mode: exact_zeva
+    memory_dim: 256
+    action_horizon: 32
+    action_hidden_dim: 1024
+    num_heads: 8
+    mlp_ratio: 2.0
+    gate_init: 0.0
+    prior_hidden_dim: 256
+    prior_num_heads: 4
+    prior_loss_weight: 0.01
+    prior_dropout_rate: 0.4
+    prior_inference_guidance_scale: 0.5
+    leading_condition_steps: 0
+  cache:
+    path: null
+    strict_manifest: true
+  transition_path: ./data/robotwin2.0/zeva_transitions

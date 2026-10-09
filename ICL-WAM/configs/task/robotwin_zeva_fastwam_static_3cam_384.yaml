@@ -1,0 +1,13 @@
+# @package _global_
+
+defaults:
+  - robotwin_zeva_fastwam_3cam_384
+  - _self_
+
+ckpt: null
+model:
+  zeva:
+    task_context:
+      mode: static
+      top_k: 5
+      key_dim: ${model.zeva.cte.retrieval_dim}

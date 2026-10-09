@@ -1,0 +1,12 @@
+policy_name: iclwam_policy
+task_name: null
+task_config: demo_randomized
+ckpt_setting: iclwam_http
+seed: 0
+instruction_type: unseen
+eval_num_episodes: 100
+server_url: http://127.0.0.1:8765
+http_timeout: 300
+skip_get_obs_within_replan: false
+max_attempts: 4
+fixed_seed: null

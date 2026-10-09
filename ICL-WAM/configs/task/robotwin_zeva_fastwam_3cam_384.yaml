@@ -1,0 +1,71 @@
+# @package _global_
+
+defaults:
+  - override /data: robotwin
+  - override /model: zeva_fastwam
+  - _self_
+
+# ============================================================
+# Zeva Stage-1 CTE training
+# ============================================================
+
+# Per-GPU batch size.
+# 2 GPUs => global batch size = 8.
+batch_size: 16
+
+# DataLoader workers PER GPU/rank.
+# 2 GPUs x 4 workers = 8 CPU workers total.
+num_workers: 12
+
+# Task-balanced CTE minibatch:
+# each GPU gets:
+#   2 tasks x 2 samples/task = 4 samples
+#
+# This guarantees same-task positive pairs for CTE task contrastive loss
+# when the balanced sampler is able to construct such a batch.
+cte_tasks_per_batch: 4
+cte_samples_per_task: 4
+
+# Optimizer
+learning_rate: 2.0e-4
+weight_decay: 0.0
+max_grad_norm: 1.0
+
+# Stage-1 training length.
+# First formal run: 5000 optimizer steps.
+max_steps: 5000
+
+# NOTE:
+# train_zeva_cte.py is step-based.
+# num_epochs is currently NOT used as the stopping criterion.
+num_epochs: 1
+
+# Current CTE trainer uses cosine scheduler.
+lr_scheduler_type: cosine
+
+# Runtime
+device: null
+seed: 42
+
+# Currently not used as gradient accumulation by train_zeva_cte.py,
+# keep at 1.
+gradient_accumulation_steps: 1
+
+# These fields may be used by other trainers.
+# Current CTE trainer logs every optimizer step to metrics.jsonl.
+log_every: 10
+
+# IMPORTANT:
+# current train_zeva_cte.py only saves cte.pt at the end unless
+# periodic checkpoint saving is explicitly implemented.
+save_every: 1000
+
+eval_every: 100000000
+
+# ============================================================
+# Stage-1 does not use T5 text context.
+# Avoid loading/generating text embedding cache.
+# ============================================================
+data:
+  train:
+    use_text_embed_cache: false
